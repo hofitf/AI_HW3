@@ -110,8 +110,7 @@ class ID3:
         Build the decision Tree in recursion.
         :param rows: array of samples
         :param labels: rows data labels.
-        :return: a Question node, This records the best feature / value to ask at this point, depending on the answer.
-                or leaf if we have to prune this branch (in which cases ?)
+        :return: a Question node, This records the best feature / value to ask at this point, depending on the answer. 
 
         """
         # TODO:
