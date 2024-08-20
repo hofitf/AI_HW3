@@ -1,4 +1,3 @@
-
 from mdp_rl_implementation import value_iteration, get_policy, policy_evaluation, policy_iteration, adp_algorithm
 from mdp import MDP, Action, format_transition_function, print_transition_function
 from simulator import Simulator
@@ -15,7 +14,7 @@ def example_driver():
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
     print("@@@@@@ The board and rewards @@@@@@")
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-    
+
     mdp.print_rewards()
 
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
@@ -35,7 +34,6 @@ def example_driver():
     policy = get_policy(mdp, U_new)
     mdp.print_policy(policy)
 
-    
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
     print("@@@@@@@@@ Policy iteration @@@@@@@@")
     print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
@@ -55,25 +53,20 @@ def example_driver():
     mdp.print_policy(policy_new)
 
     print("Done!")
-    
 
 
 def adp_example_driver():
-
     sim = Simulator()
-    reward_matrix, transition_probabilities = adp_algorithm(sim,num_episodes=10)
-  
+    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=10)
+
     print("Reward Matrix:")
     print(reward_matrix)
 
-    
     formatted_transitions = format_transition_function(transition_probabilities)
     print("Transition Probabilities:")
     print_transition_function(formatted_transitions)
-    
-    
 
-    
+
 if __name__ == '__main__':
     # run our example
     example_driver()
