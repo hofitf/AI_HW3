@@ -6,19 +6,20 @@ import numpy as np
 
 def find_max_action(mdp: MDP, i, j, U_local):
     max_sum = float('-inf')
+    max_action = None
     if (i, j) in mdp.terminal_states:
-        return 0
+        return 0, None
     for action in mdp.actions.keys():
         sum_action = 0
         count = 0
-        for action2, value2 in mdp.actions.items():
+        for action2 in mdp.actions.keys():
             next_state = mdp.step((i, j), action2)
-            y = mdp.transition_function[action][count]
-            x = U_local[next_state[0]][next_state[1]]
             sum_action += mdp.transition_function[action][count] * U_local[next_state[0]][next_state[1]]
             count += 1
-        max_sum = max(max_sum, sum_action)
-    return max_sum
+        if max_sum < sum_action:
+            max_sum = sum_action
+            max_action = action
+    return max_sum, max_action
 
 
 def value_iteration(mdp: MDP, U_init: np.ndarray, epsilon: float = 10 ** (-3)) -> np.ndarray:
@@ -39,7 +40,8 @@ def value_iteration(mdp: MDP, U_init: np.ndarray, epsilon: float = 10 ** (-3)) -
         for i in range(3):
             for j in range(4):
                 if mdp.board[i][j] != 'WALL':
-                    U_local[i][j] = float(mdp.board[i][j]) + mdp.gamma * find_max_action(mdp, i, j, U_final)
+                    max_sum_action = find_max_action(mdp, i, j, U_final)
+                    U_local[i][j] = float(mdp.board[i][j]) + mdp.gamma * max_sum_action[0]
                     if abs(U_local[i][j] - U_final[i][j]) > delta:
                         delta = abs(U_local[i][j] - U_final[i][j])
                 else:
@@ -78,10 +80,59 @@ def policy_evaluation(mdp: MDP, policy: np.ndarray) -> np.ndarray:
     # Given the mdp, and a policy
     # return: the utility U(s) of each state s
     #
-    # TODO:
-    # ====== YOUR CODE: ======
-    raise NotImplementedError
-    # ========================
+    P = np.zeros((mdp.num_row * mdp.num_col, mdp.num_row * mdp.num_col))
+    R = np.zeros((mdp.num_row * mdp.num_col))
+    I = np.eye(mdp.num_row * mdp.num_col)
+    for i in range(mdp.num_row):
+        for j in range(mdp.num_col):
+            if mdp.board[i][j] != 'WALL' and policy[i][j] is not None:
+                count = 0
+                for action in mdp.actions.keys():
+                    next_state = mdp.step((i, j), action)
+                    if mdp.transition_function[policy[i][j]][count] is not None:
+                        P[mdp.num_col * i + j][mdp.num_col * next_state[0] + next_state[1]] += \
+                            mdp.transition_function[policy[i][j]][count]
+                    count += 1
+            if mdp.board[i][j] != 'WALL':
+                R[mdp.num_col * i + j] = float(mdp.board[i][j])
+
+    V = np.linalg.solve(I - mdp.gamma * P, R)
+    U_final = []
+    for i in range(mdp.num_row):
+        U_final.append([0] * mdp.num_col)
+
+    for i in range(mdp.num_row):
+        for j in range(mdp.num_col):
+            if mdp.board[i][j] != 'WALL':
+                U_final[i][j] = V[mdp.num_col * i + j]
+            else:
+                U_final[i][j] = None
+
+    return U_final
+
+
+def turn_to_action(action):
+    if action == 'UP':
+        return Action.UP
+    elif action == 'DOWN':
+        return Action.DOWN
+    elif action == 'RIGHT':
+        return Action.RIGHT
+    elif action == 'LEFT':
+        return Action.LEFT
+    return None
+
+
+def turn_action_to_string(action):
+    if action == Action.UP:
+        return 'UP'
+    elif action == Action.DOWN:
+        return 'DOWN'
+    elif action == Action.RIGHT:
+        return 'RIGHT'
+    elif action == Action.LEFT:
+        return 'LEFT'
+    return None
 
 
 def policy_iteration(mdp: MDP, policy_init: np.ndarray) -> np.ndarray:
@@ -89,11 +140,36 @@ def policy_iteration(mdp: MDP, policy_init: np.ndarray) -> np.ndarray:
     # run the policy iteration algorithm
     # return: the optimal policy
     #
-    optimal_policy = None
-    # TODO:
-    # ====== YOUR CODE: ======
-    raise NotImplementedError
-    # ========================
+    optimal_policy = []
+    for i in range(mdp.num_row):
+        optimal_policy.append([None] * mdp.num_col)
+    for i in range(mdp.num_row):
+        for j in range(mdp.num_col):
+            optimal_policy[i][j] = turn_to_action(policy_init[i][j])
+    changed = False
+    while not changed:
+        U = policy_evaluation(mdp, optimal_policy)
+        changed = True
+        for i in range(mdp.num_row):
+            for j in range(mdp.num_col):
+                sum_action = 0
+                count = 0
+                if mdp.board[i][j] != 'WALL' and (i, j) not in mdp.terminal_states:
+                    for action in mdp.actions.keys():
+                        next_state = mdp.step((i, j), action)
+                        if optimal_policy[i][j] is not None:
+                            sum_action += mdp.transition_function[optimal_policy[i][j]][count] * U[next_state[0]][
+                                next_state[1]]
+                        count += 1
+                    max_sum_action = find_max_action(mdp, i, j, U)
+                    if max_sum_action[0] > sum_action:
+                        optimal_policy[i][j] = max_sum_action[1]
+                        changed = False
+        if changed:
+            break
+    for i in range(mdp.num_row):
+        for j in range(mdp.num_col):
+            optimal_policy[i][j] = turn_action_to_string(optimal_policy[i][j])
     return optimal_policy
 
 
