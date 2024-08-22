@@ -179,7 +179,7 @@ def adp_algorithm(
         num_rows: int = 3,
         num_cols: int = 4,
         actions: List[Action] = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
-) -> Tuple[np.ndarray, Dict[Action, Dict[Action, float]]]:
+) -> Tuple[np.ndarray, Dict[Action, Dict[Action, float]]]:  # TODO WALL
     """
     Runs the ADP algorithm given the simulator, the number of rows and columns in the grid, 
     the list of actions, and the number of episodes.
@@ -195,10 +195,28 @@ def adp_algorithm(
     its nested dicionary will contain the condional probabilites of all the actions. 
     """
 
-    transition_probs = None
-    reward_matrix = None
-    # TODO
-    # ====== YOUR CODE: ======
-    raise NotImplementedError
-    # ========================
+    transition_probs = {}
+    num_played = {}
+    reward_matrix = []
+    for i in range(num_rows):
+        reward_matrix.append([0.0] * num_cols)
+
+    for action in actions:
+        num_played[action] = 0
+        transition_probs[action] = {}
+        for action2 in actions:
+            transition_probs[action][action2] = 0
+
+    for episode_gen in sim.replay(num_episodes):
+        for step in episode_gen:
+            state, reward, action, actual_action = step
+            reward_matrix[state[0]][state[1]] = reward
+            if action is not None:
+                num_played[action] += 1
+                transition_probs[action][actual_action] += 1
+
+    for action in actions:
+        for action2 in actions:
+            transition_probs[action][action2] = transition_probs[action][action2] / num_played[action]
+
     return reward_matrix, transition_probs

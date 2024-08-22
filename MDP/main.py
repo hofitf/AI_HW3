@@ -57,7 +57,7 @@ def example_driver():
 
 def adp_example_driver():
     sim = Simulator()
-    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=10)
+    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=1)
 
     print("Reward Matrix:")
     print(reward_matrix)
@@ -71,3 +71,26 @@ if __name__ == '__main__':
     # run our example
     example_driver()
     adp_example_driver()
+
+    sim = Simulator()
+    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=1000)
+
+    x = format_transition_function(transition_probabilities)
+
+    mdp = MDP(reward_matrix, [(0, 3), (1, 3)], x, 0.9)
+    policy = [['UP', 'UP', 'UP', None],
+              ['UP', None, 'UP', None],
+              ['UP', 'UP', 'UP', 'UP']]
+
+    print("Reward Matrix:")
+    mdp.print_utility(reward_matrix)
+
+    print("Transition Probabilities:")
+    print_transition_function(x)
+
+    print("\nInitial policy:")
+    mdp.print_policy(policy)
+    print("\nFinal policy:")
+    policy_new = policy_iteration(mdp, policy)
+    mdp.print_policy(policy_new)
+
