@@ -93,8 +93,8 @@ def policy_evaluation(mdp: MDP, policy: np.ndarray) -> np.ndarray:
                         P[mdp.num_col * i + j][mdp.num_col * next_state[0] + next_state[1]] += \
                             mdp.transition_function[policy[i][j]][count]
                     count += 1
-            if mdp.board[i][j] != 'WALL':
-                R[mdp.num_col * i + j] = float(mdp.board[i][j])
+            if mdp.board[i][j] != 'WALL' and mdp.board[i][j] is not None:
+                R[mdp.num_col * i + j] = float(mdp.board[i][j])  # TODO CHECK
 
     V = np.linalg.solve(I - mdp.gamma * P, R)
     U_final = []
@@ -179,7 +179,7 @@ def adp_algorithm(
         num_rows: int = 3,
         num_cols: int = 4,
         actions: List[Action] = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
-) -> Tuple[np.ndarray, Dict[Action, Dict[Action, float]]]:  # TODO WALL
+) -> Tuple[np.ndarray, Dict[Action, Dict[Action, float]]]:
     """
     Runs the ADP algorithm given the simulator, the number of rows and columns in the grid, 
     the list of actions, and the number of episodes.
@@ -199,7 +199,7 @@ def adp_algorithm(
     num_played = {}
     reward_matrix = []
     for i in range(num_rows):
-        reward_matrix.append([0.0] * num_cols)
+        reward_matrix.append([None] * num_cols)
 
     for action in actions:
         num_played[action] = 0

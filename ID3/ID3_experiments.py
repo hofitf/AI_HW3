@@ -25,12 +25,10 @@ def basic_experiment(x_train, y_train, x_test, y_test, formatted_print=False):
     #  - Instate ID3 decision tree instance.
     #  - Fit the tree on the training data set.
     #  - Test the model on the test set (evaluate the accuracy) and print the result.
-
-    acc = None
-
-    # ====== YOUR CODE: ======
-    raise NotImplementedError
-    # ========================
+    tree = ID3(['m', 'z'])
+    tree.fit(x_train, y_train)
+    predict = tree.predict(x_test)
+    acc = accuracy(y_test, predict)
 
     assert acc > 0.9, 'you should get an accuracy of at least 90% for the full ID3 decision tree'
     print(f'Test Accuracy: {acc * 100:.2f}%' if formatted_print else acc)

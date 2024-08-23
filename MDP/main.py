@@ -73,7 +73,7 @@ if __name__ == '__main__':
     adp_example_driver()
 
     sim = Simulator()
-    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=1000)
+    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=10)
 
     x = format_transition_function(transition_probabilities)
 

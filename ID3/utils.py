@@ -15,7 +15,7 @@ from typing import List, Tuple
 ========================================================================
 """
 
-ID = 123456789  # TODO: change it to your personal ID
+ID = 318946464
 random_gen = RandomState(seed=ID)
 print_formatted_values = False
 
@@ -25,7 +25,7 @@ def set_formatted_values(value=True):
     print_formatted_values = value
 
 
-def accuracy(y: np.array, y_pred: np.array)-> float:
+def accuracy(y: np.array, y_pred: np.array) -> float:
     """
     Calculate prediction accuracy: the fraction of predictions in that are
     equal to the ground truth.
@@ -33,16 +33,12 @@ def accuracy(y: np.array, y_pred: np.array)-> float:
     :param y_pred: Predictions vector of shape (N,)
     :return: The prediction accuracy as a fraction.
     """
-    # TODO: Calculate prediction accuracy. Don't use an explicit loop.
-
     assert y.shape == y_pred.shape
     assert y.ndim == 1
-    accuracy_val = None
-    # ====== YOUR CODE: ======
-    raise NotImplementedError
-    # ========================
 
-    return accuracy_val
+    accuracy_num = np.sum(y == y_pred)
+
+    return accuracy_num / len(y)
 
 
 def l2_dist(x1: np.array, x2: np.array):
@@ -54,15 +50,12 @@ def l2_dist(x1: np.array, x2: np.array):
     :return: A distance matrix of shape (N1, N2) where the entry i, j
     represents the distance between x1 sample i and x2 sample j.
     """
-    # TODO:
-    #  Implement L2-distance calculation efficiently as possible.
-    #  Note: Use only basic numpy operations, no external code.
 
-    dists = None
+    dists = np.zeros((len(x1), len(x2)))
 
-    # ====== YOUR CODE: ======
-    raise NotImplementedError
-    # ========================
+    for i in range(len(x1)):
+        for j in range(len(x2)):
+            dists[i][j] = np.linalg.norm(x1[i] - x2[j])
 
     return dists
 
