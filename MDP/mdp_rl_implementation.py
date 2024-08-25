@@ -14,7 +14,8 @@ def find_max_action(mdp: MDP, i, j, U_local):
         count = 0
         for action2 in mdp.actions.keys():
             next_state = mdp.step((i, j), action2)
-            sum_action += mdp.transition_function[action][count] * U_local[next_state[0]][next_state[1]]
+            if U_local[next_state[0]][next_state[1]] is not None:
+                sum_action += mdp.transition_function[action][count] * U_local[next_state[0]][next_state[1]]
             count += 1
         if max_sum < sum_action:
             max_sum = sum_action
@@ -60,19 +61,10 @@ def get_policy(mdp: MDP, U: np.ndarray) -> np.ndarray:
         policy.append([0] * mdp.num_col)
     for i in range(3):
         for j in range(4):
-            max_action = None
             if mdp.board[i][j] == 'WALL' or (i, j) in mdp.terminal_states:
                 policy[i][j] = None
             else:
-                max_utility = float('-inf')
-                for action in mdp.actions.keys():
-                    next_state = mdp.step((i, j), action)
-                    if mdp.board[next_state[0]][next_state[1]] == 'WALL':
-                        continue
-                    if max_utility < U[next_state[0]][next_state[1]]:
-                        max_utility = U[next_state[0]][next_state[1]]
-                        max_action = action
-                policy[i][j] = max_action
+                policy[i][j] = find_max_action(mdp, i, j, U)[1]
     return policy
 
 
@@ -80,9 +72,9 @@ def policy_evaluation(mdp: MDP, policy: np.ndarray) -> np.ndarray:
     # Given the mdp, and a policy
     # return: the utility U(s) of each state s
     #
-    P = np.zeros((mdp.num_row * mdp.num_col, mdp.num_row * mdp.num_col))
-    R = np.zeros((mdp.num_row * mdp.num_col))
-    I = np.eye(mdp.num_row * mdp.num_col)
+    P = np.zeros((mdp.num_row * mdp.num_col, mdp.num_row * mdp.num_col), dtype=float)
+    R = np.zeros((mdp.num_row * mdp.num_col), dtype=float)
+    I = np.eye(mdp.num_row * mdp.num_col, dtype=float)
     for i in range(mdp.num_row):
         for j in range(mdp.num_col):
             if mdp.board[i][j] != 'WALL' and policy[i][j] is not None:
@@ -94,8 +86,7 @@ def policy_evaluation(mdp: MDP, policy: np.ndarray) -> np.ndarray:
                             mdp.transition_function[policy[i][j]][count]
                     count += 1
             if mdp.board[i][j] != 'WALL' and mdp.board[i][j] is not None:
-                R[mdp.num_col * i + j] = float(mdp.board[i][j])  # TODO CHECK
-
+                R[mdp.num_col * i + j] = float(mdp.board[i][j])
     V = np.linalg.solve(I - mdp.gamma * P, R)
     U_final = []
     for i in range(mdp.num_row):
@@ -103,7 +94,7 @@ def policy_evaluation(mdp: MDP, policy: np.ndarray) -> np.ndarray:
 
     for i in range(mdp.num_row):
         for j in range(mdp.num_col):
-            if mdp.board[i][j] != 'WALL':
+            if mdp.board[i][j] != 'WALL' and mdp.board[i][j] is not None:
                 U_final[i][j] = V[mdp.num_col * i + j]
             else:
                 U_final[i][j] = None
@@ -154,10 +145,10 @@ def policy_iteration(mdp: MDP, policy_init: np.ndarray) -> np.ndarray:
             for j in range(mdp.num_col):
                 sum_action = 0
                 count = 0
-                if mdp.board[i][j] != 'WALL' and (i, j) not in mdp.terminal_states:
+                if mdp.board[i][j] != 'WALL' and (i, j) not in mdp.terminal_states and mdp.board[i][j] is not None:
                     for action in mdp.actions.keys():
                         next_state = mdp.step((i, j), action)
-                        if optimal_policy[i][j] is not None:
+                        if optimal_policy[i][j] is not None and U[next_state[0]][next_state[1]] is not None:
                             sum_action += mdp.transition_function[optimal_policy[i][j]][count] * U[next_state[0]][
                                 next_state[1]]
                         count += 1
@@ -165,6 +156,8 @@ def policy_iteration(mdp: MDP, policy_init: np.ndarray) -> np.ndarray:
                     if max_sum_action[0] > sum_action:
                         optimal_policy[i][j] = max_sum_action[1]
                         changed = False
+                else:
+                    continue
         if changed:
             break
     for i in range(mdp.num_row):
@@ -181,7 +174,7 @@ def adp_algorithm(
         actions: List[Action] = [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]
 ) -> Tuple[np.ndarray, Dict[Action, Dict[Action, float]]]:
     """
-    Runs the ADP algorithm given the simulator, the number of rows and columns in the grid, 
+    Runs the ADP algorithm given the simulator, the number of rows and columns in the grid,
     the list of actions, and the number of episodes.
 
     :param sim: The simulator instance.
@@ -190,16 +183,14 @@ def adp_algorithm(
     :param actions: List of possible actions (default is [Action.UP, Action.DOWN, Action.LEFT, Action.RIGHT]).
     :param num_episodes: Number of episodes to run the simulation (default is 10).
     :return: A tuple containing the reward matrix and the transition probabilities.
-    
+
     NOTE: the transition probabilities should be represented as a dictionary of dictionaries, so that given a desired action (the first key),
-    its nested dicionary will contain the condional probabilites of all the actions. 
+    its nested dicionary will contain the condional probabilites of all the actions.
     """
 
     transition_probs = {}
     num_played = {}
-    reward_matrix = []
-    for i in range(num_rows):
-        reward_matrix.append([None] * num_cols)
+    reward_matrix = np.full((num_rows, num_cols), None, dtype=object)
 
     for action in actions:
         num_played[action] = 0

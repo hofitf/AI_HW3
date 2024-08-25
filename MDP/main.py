@@ -57,7 +57,7 @@ def example_driver():
 
 def adp_example_driver():
     sim = Simulator()
-    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=1)
+    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=1000)
 
     print("Reward Matrix:")
     print(reward_matrix)
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     adp_example_driver()
 
     sim = Simulator()
-    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=10)
+    reward_matrix, transition_probabilities = adp_algorithm(sim, num_episodes=1000)
 
     x = format_transition_function(transition_probabilities)
 
